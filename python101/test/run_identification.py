@@ -4,7 +4,7 @@ import os
 import shutil
 import warnings
 import re
-
+import random
 import csv
 import math
 import sewpy
@@ -61,9 +61,9 @@ def rdb(dbname):
     db=open(dbname)
     db_p=db.tell()
     #db.seek(0,0)
-    db_data= csv.reader(db)
+    db_data= csv.reader(db) #得到可迭代的星表数据，每一项都是星表中的一行数据的列表形式
     result=[]
-    db_head=re.split('[,|\n]',db.readline())
+    db_head=re.split('[,|\n]',db.readline()) #得到星表表头列表
     #print(db.readline())
     headlist=[]
     dblen=0
@@ -72,7 +72,7 @@ def rdb(dbname):
     except SyntaxWarning:
         pass
     print(mm)
-    if mm == 'Rm':
+    if mm == 'Rm': #若标注R波段星等：
         my_head=[ram,decm,rm,rm_err,im,im_err]
         for i in my_head :
             headlist.append(db_head.index(i))
@@ -84,24 +84,25 @@ def rdb(dbname):
             headlog=headlog+1
             #print(once)
             try:
-                if rmag[0] < float(once[headlist[2]]) < rmag[1] :
-                    if 0 < float(once[headlist[3]]) < rmag_err :
-                        if float(once[headlist[4]]) > 0:
+                if rmag[0] < float(once[headlist[2]]) < rmag[1] : #若星表r星等在规定范围内：
+                    if 0 < float(once[headlist[3]]) < rmag_err : #若星表r误差在规定范围内：
+                        if float(once[headlist[4]]) > 0: #若星表i星等存在（大于0）：由r星等和i星等计算R星等
                             r_once=float(once[headlist[2]])
                             i_once=float(once[headlist[4]])
-                            R_once=r_once-0.2936*(r_once-i_once)-0.1439
+                            R_once=r_once-0.2936*(r_once-i_once)-0.1439 # r转化成R
                             R_err=float(once[headlist[3]])
-                            one=[float(headlog),float(once[headlist[0]]),float(once[headlist[1]]),R_once,R_err]
-                        else:
+                            one=[float(headlog),float(once[headlist[0]]),float(once[headlist[1]]),R_once,R_err] 
+                            #得到一颗数据库中被选中的星的序数，坐标，R星等及误差的一行列表
+                        else: #若星表i星等不存在(-999)，则用粗略公式把r星等转化为R星等
                             continue
                             one=[float(headlog)]
                             for j in headlist[0:4]:
                                 one.append(float(once[int(j)]))
-                            one[2]=one[2]-0.2
-                        result.append(one)
+                            one[2]=one[2]-0.2 # r转化成R
+                        result.append(one) #星表的一行读取完毕，将所需的结果列表添加到总的结果列表中
             except:
                 pass
-    elif mm == 'Im':
+    elif mm == 'Im': #同上
         my_head=[ram,decm,im,im_err,rm,rm_err]
         for i in my_head :
             headlist.append(db_head.index(i))
@@ -113,7 +114,7 @@ def rdb(dbname):
             headlog=headlog+1
             #print(once)
             try:
-                if rmag[0] < float(once[headlist[2]]) < rmag[1] :
+                if rmag[0] < float(once[headlist[2]]) < rmag[1] : 
                     if 0 < float(once[headlist[3]]) < rmag_err :
                         if  float(once[headlist[4]]) > 0  :
                             i_once=float(once[headlist[2]])
@@ -130,7 +131,7 @@ def rdb(dbname):
                         result.append(one)
             except:
                 pass
-    else:
+    else:#如果是其它波段，同上
         my_head=[ram,decm,mm,mm_err]
         #print(my_head)
         for i in my_head :
@@ -145,18 +146,19 @@ def rdb(dbname):
                 if rmag[0] < float(once[headlist[2]]) < rmag[1] :
                     if 0 < float(once[headlist[3]]) < rmag_err :
                         one=[float(headlog)]
-                        for j in headlist:
+                        for j in headlist: #得到星表一行中所需的坐标，星等以及星等误差
                             one.append(float(once[int(j)]))
                         #print(one)
                         result.append(one)
                 headlog=headlog+1
             except:
                 pass
+    result=random.sample(result,50)
     db.close()
     print('db : ',len(result),' / ',dblen)
-    return np.array(result)
+    return np.array(result) #将总结果列表转换成numpy数组并返回
 
-def make_asc_runsex(img):
+def make_asc_runsex(img): #用sextarctor“扫描”一张fits图像，返回一个包含源指定信息的GaiaCatalog0.ASC文件，以及一个astropy.table格式的table
     #img='/home/yu/da/2019_work/cg_search/H2019-09-11T14:14:51_GW_S190910d_1819+2521.fits'
     write_key=['NUMBER','ALPHA_J2000','DELTA_J2000','MAG_AUTO','MAGERR_AUTO','MAG_BEST','MAGERR_BEST','ELLIPTICITY']
     sew=sewpy.SEW(params=write_key,)
@@ -193,7 +195,7 @@ To be checked in case the image is not available in PanSTARRS
 def dsscut(name,time,ra,dec,radius,fol):
 
     plt.rc('text', usetex=False)
-    plt.rc('font', family='serif')
+    plt.rc('font', family='serif') #设定字体
     #
     # basic parameters, can be changed in principle
     #
@@ -211,12 +213,13 @@ def dsscut(name,time,ra,dec,radius,fol):
     dec_dms='%02.f:%02.f:%05.2f' % (ra_dec.dec.dms[0],abs(ra_dec.dec.dms[1]),abs(ra_dec.dec.dms[2]))
     #### size /arcminutes
     link='http://archive.eso.org/dss/dss/image?ra='+raS+'&dec='+decS+'&equinox=J2000&name=&x='+str(size)+'&y='+str(size)+'&Sky-Survey=DSS2-red&mime-type=download-fits&statsmode=WEBFORM'
+    #eg: 'http://archive.eso.org/dss/dss/image?ra=1%3A32%3A32&dec=32%3A12%3A32&equinox=J2000&name=&x=10&y=10&Sky-Survey=DSS2-red&mime-type=download-fits&statsmode=WEBFORM'
     outf_path=fol+'/'+name+'/'+name+'_dss_red.fits'
     csv_outf=fol+'/'+name+'/'+name+'.csv'
     try:
         #with urllib.request.urlopen(link) as response, open(outf, 'wb') as outf:
-        response, outf = urllib.request.urlopen(link), open(outf_path, 'wb')
-        shutil.copyfileobj(response, outf)
+        response, outf = urllib.request.urlopen(link), open(outf_path, 'wb') #返回一个reponse对象，保存网页信息；新建fits文件
+        shutil.copyfileobj(response, outf) #将网页内容复制到上一步新建的fits文件
         print('\t... image saved to:', outf_path)
 
         #
@@ -259,7 +262,7 @@ def dsscut(name,time,ra,dec,radius,fol):
             theta = np.linspace(0, 2*np.pi,8000)
             x, y =  s_world[0]-x1+np.cos(theta)*float(radius)*3600, s_world[1]-y1+np.sin(theta)*float(radius)*3600
             fig1.plot(x, y, color='red', linewidth=0.5)
-            try:
+            try: #先尝试下载panstarrs星表
                 os.system('wget -nd -nc "https://catalogs.mast.stsci.edu/api/v0.1/panstarrs/dr1/mean?ra='+str(raS)+'&amp;dec='+str(decS)+'&radius='+str((size)/120.)+'&nDetections.gte=1&amp&pagesize=50001&format=csv"  ')
                 os.system('mv ./mean\?ra\='+str(raS)+'\&amp\;dec\='+str(decS)+'\&radius\='+str(size/120.)+'\&nDetections.gte\=1\&amp\&pagesize\=50001\&format\=csv  ./'+str(csv_outf))
                 print('1')
@@ -267,7 +270,7 @@ def dsscut(name,time,ra,dec,radius,fol):
                 print('2')
                 sextab = make_asc_runsex(outf_path)
                 print(len(db_data))
-                for i in db_data:
+                for i in db_data: #在FC上标星等
                     db_ra = i[1]
                     db_dec = i[2]
                     db_mag = format(i[3], '0.2f')
@@ -278,7 +281,7 @@ def dsscut(name,time,ra,dec,radius,fol):
                     #fig.text(db_world[0]/(size*60.),db_world[1]/(size*60.),str(format(db_mag, '0.2f')),fontsize=5,color='green')
                 #txtb=fig.text(0.06, 0.06, mm, fontsize=10, color='black')
                 #txtb.set_path_effects([PathEffects.withStroke(linewidth=0.1, foreground='k')])
-            except:
+            except: #如果panstarrs星表下载失败，尝试下载skymapper星表（skymapper数据主要是南天的）
                 try:
                     os.system('wget -nd -nc "http://skymapper.anu.edu.au/sm-cone/public/query?RA='+str(raS)+'&DEC='+str(decS)+'&SR='+str((size)/120.)+'&format=csv"  ')
                     os.system('mv ./query\?RA\='+str(raS)+'\&DEC\='+str(decS)+'\&SR\='+str(size/120.)+'\&format\=csv  ./'+str(csv_outf))
@@ -303,7 +306,7 @@ def dsscut(name,time,ra,dec,radius,fol):
                         fig1.text(db_world[0]-x1, db_world[1]-y1, str(db_mag), color='green', fontsize=7)
                 except:
                     txtb=fig.text(0.45,0.06,'NO Panstarrs AND skymapper',fontsize=10,color='black')
-            fig2=plt.axes([0.0, 0.0, 0.4, 0.12])
+            fig2=plt.axes([0.0, 0.0, 0.4, 0.12]) #在fig的左下角画一个小框，里面写GRB的信息（时间，坐标，图像视场等）
             fig2.set_facecolor('w')
             txta=fig.text(0.02,0.08,'GRB'+time+'  DSS '+str(imsize)+'\' x '+str(imsize)+'\'',fontsize=7,color='black')
             txta=fig.text(0.5,0.95,'N',fontsize=18,color='black')
