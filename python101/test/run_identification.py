@@ -158,31 +158,31 @@ def rdb(dbname):
     print('db : ',len(result),' / ',dblen)
     return np.array(result) #将总结果列表转换成numpy数组并返回
 
-def make_asc_runsex(img): #用sextarctor“扫描”一张fits图像，返回一个包含源指定信息的GaiaCatalog0.ASC文件，以及一个astropy.table格式的table
-    #img='/home/yu/da/2019_work/cg_search/H2019-09-11T14:14:51_GW_S190910d_1819+2521.fits'
-    write_key=['NUMBER','ALPHA_J2000','DELTA_J2000','MAG_AUTO','MAGERR_AUTO','MAG_BEST','MAGERR_BEST','ELLIPTICITY']
-    sew=sewpy.SEW(params=write_key,)
-    print('sex'+img)
-    try:
-            try:out = sew(img+'.fits')
-            except:out = sew(img)
-    except:
-        logfile=open('temp.log','a')
-        logfile.write(img+'\n')
-        logfile.close()
-        return
-    sextab = out['table']
-    with open('GaiaCatalog0.ASC','w') as asv:
-        sumlog=1
-        for i in write_key:
-            asv.write('# '+str(sumlog)+' '+i+'\n')
-            sumlog=sumlog+1
-        for i in sextab:
-            line=''
-            for ii in i:
-                line=line+' '+str(ii)
-            asv.write(line+'\n')
-    return sextab
+# def make_asc_runsex(img): #用sextarctor“扫描”一张fits图像，返回一个包含源指定信息的GaiaCatalog0.ASC文件，以及一个astropy.table格式的table
+#     #img='/home/yu/da/2019_work/cg_search/H2019-09-11T14:14:51_GW_S190910d_1819+2521.fits'
+#     write_key=['NUMBER','ALPHA_J2000','DELTA_J2000','MAG_AUTO','MAGERR_AUTO','MAG_BEST','MAGERR_BEST','ELLIPTICITY']
+#     sew=sewpy.SEW(params=write_key,)
+#     print('sex'+img)
+#     try:
+#             try:out = sew(img+'.fits')
+#             except:out = sew(img)
+#     except:
+#         logfile=open('temp.log','a')
+#         logfile.write(img+'\n')
+#         logfile.close()
+#         return
+#     sextab = out['table']
+#     with open('GaiaCatalog0.ASC','w') as asv:
+#         sumlog=1
+#         for i in write_key:
+#             asv.write('# '+str(sumlog)+' '+i+'\n')
+#             sumlog=sumlog+1
+#         for i in sextab:
+#             line=''
+#             for ii in i:
+#                 line=line+' '+str(ii)
+#             asv.write(line+'\n')
+#     return sextab
 
 
 
@@ -203,7 +203,7 @@ def dsscut(name,time,ra,dec,radius,fol):
     size1=10 # [arcmin] the size of the image used for the FC
     pix=1.008 # approx pixel scale
     #
-    # get the cutout image from the ESO archive
+    # get the cutout image from the ESO acsrchive
     #
     ra1,dec1=(float(ra),float(dec))
     raS=ra.replace(':','%3A')
@@ -268,7 +268,7 @@ def dsscut(name,time,ra,dec,radius,fol):
                 print('1')
                 db_data = rdb(csv_outf)
                 print('2')
-                sextab = make_asc_runsex(outf_path)
+                #sextab = make_asc_runsex(outf_path)
                 print(len(db_data))
                 for i in db_data: #在FC上标星等
                     db_ra = i[1]
@@ -296,7 +296,7 @@ def dsscut(name,time,ra,dec,radius,fol):
                     print('1')
                     db_data = rdb(csv_outf)
                     print('2')
-                    sextab = make_asc_runsex(outf_path)
+                    #sextab = make_asc_runsex(outf_path)
                     print(len(db_data))
                     for i in db_data:
                         db_ra = i[1]
