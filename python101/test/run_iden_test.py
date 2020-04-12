@@ -174,8 +174,8 @@ def dsscut(name,time,ra,dec,radius,fol):
     #
     # basic parameters, can be changed in principle
     #
-    size=10 # [arcmin] the size of the retrieved and saved image
-    size1=10 # [arcmin] the size of the image used for the FC
+    size=5 # [arcmin] the size of the retrieved and saved image
+    size1=5 # [arcmin] the size of the image used for the FC
     pix=1.008 # approx pixel scale
     #
     # get the cutout image from the ESO archive
@@ -201,6 +201,9 @@ def dsscut(name,time,ra,dec,radius,fol):
         # load image and make a FC
         #
         fh=fits.open(outf_path)
+
+        
+
         fim = fh[0].data
         fhe = fh[0].header
 
