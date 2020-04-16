@@ -264,6 +264,7 @@ def dsscut(name,time,ra,dec,radius,fol):
             fig1.plot(x, y, color='red', linewidth=0.5)
             try: #先尝试下载panstarrs星表
                 os.system('wget -nd -nc "https://catalogs.mast.stsci.edu/api/v0.1/panstarrs/dr1/mean?ra='+str(raS)+'&amp;dec='+str(decS)+'&radius='+str((size)/120.)+'&nDetections.gte=1&amp&pagesize=50001&format=csv"  ')
+                #eg. https://catalogs.mast.stsci.edu/api/v0.1/panstarrs/dr1/mean?ra=335.6992&amp;dec=-7.5183&radius=0.08333333333333333&nDetections.gte=1&amp&pagesize=50001&format=csv
                 os.system('mv ./mean\?ra\='+str(raS)+'\&amp\;dec\='+str(decS)+'\&radius\='+str(size/120.)+'\&nDetections.gte\=1\&amp\&pagesize\=50001\&format\=csv  ./'+str(csv_outf))
                 print('1')
                 db_data = rdb(csv_outf)
@@ -348,8 +349,8 @@ def dsscut(name,time,ra,dec,radius,fol):
 if __name__ == "__main__":
     name='test'
     time='191106.584'
-    ra='198.5560'
-    dec='11.2698'
+    ra='335.6992'
+    dec='-7.5183'
     radius='0.0003'
     #radius='0.0015'
     fol='./'
