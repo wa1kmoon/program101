@@ -14,8 +14,8 @@ class Vector:
         self.x = x
         self.y = y
     
-#    def __repr__(self):
-#        return 'Vector(%r, %r)' % (self.x, self.y)
+    def __repr__(self):
+        return 'Vector({!r}, {!r})'.format(self.x, self.y)
     
     def __abs__(self):
         return hypot(self.x, self.y)
@@ -41,3 +41,9 @@ print(abs(v))
 print(v * 3)
 
 print(abs(v * 3))
+
+'''
+If we did not implement __repr__ , 
+vector instances would be shown in the console like 
+<Vector object at 0x10e100070> .
+'''
