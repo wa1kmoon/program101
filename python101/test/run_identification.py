@@ -153,7 +153,10 @@ def rdb(dbname):
                 headlog=headlog+1
             except:
                 pass
-    result=random.sample(result,50)
+    if len(result) >= 50:
+        result=random.sample(result,50)
+    else:
+        pass
     db.close()
     print('db : ',len(result),' / ',dblen)
     return np.array(result) #将总结果列表转换成numpy数组并返回
