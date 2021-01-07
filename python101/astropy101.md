@@ -80,3 +80,21 @@
     plt.savefig('3d.png',dpi=100)
     plt.show()
     ```
+
+- 求两点距离
+
+```python
+>>> from astropy import units as u
+>>> from astropy.coordinates import SkyCoord
+
+>>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, distance=10*u.pc, frame='icrs')
+>>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, distance=11.5*u.pc, frame='icrs')
+>>> c1.separation_3d(c2)  
+<Distance 1.52286024 pc>
+
+>>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
+>>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, frame='fk5')
+>>> c1.separation(c2)  # Differing frames handled correctly  
+<Angle 1.40453359 deg>
+>>> dist = (c1.separation(c2)*u.degree).value #float value in degree
+```
