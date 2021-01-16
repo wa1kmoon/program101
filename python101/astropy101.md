@@ -98,3 +98,11 @@
 <Angle 1.40453359 deg>
 >>> dist = (c1.separation(c2)*u.degree).value #float value in degree
 ```
+
+- write table to fits file
+
+```
+from astropy.table import Table
+t = Table([[1, 2], [4, 5], [7, 8]], names=('a', 'b', 'c'))
+t.write('table1.fits', format='fits')
+```
