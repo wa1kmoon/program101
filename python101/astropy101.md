@@ -6,7 +6,12 @@
     from astropy.io import fits
     fits_file='1.fits'
     fits.setval(fits_file, 'TELESCOP', value='xl216')
+    # or, if something goes wrong, do as following
+    with fits.open(output,mode='update') as comp:
+        comp[0].header['COVERFRA'] = frac
+        comp.flush()
     ```
+
 
 - 如何打开本地fits图像：
 
@@ -101,7 +106,7 @@
 
 - write table to fits file
 
-```
+```python
 from astropy.table import Table
 t = Table([[1, 2], [4, 5], [7, 8]], names=('a', 'b', 'c'))
 t.write('table1.fits', format='fits')
