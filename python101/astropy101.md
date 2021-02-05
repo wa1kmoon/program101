@@ -88,26 +88,62 @@
 
 - 求两点距离
 
-```python
->>> from astropy import units as u
->>> from astropy.coordinates import SkyCoord
+    ```python
+    >>> from astropy import units as u
+    >>> from astropy.coordinates import SkyCoord
 
->>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, distance=10*u.pc, frame='icrs')
->>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, distance=11.5*u.pc, frame='icrs')
->>> c1.separation_3d(c2)  
-<Distance 1.52286024 pc>
+    >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, distance=10*u.pc, frame='icrs')
+    >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, distance=11.5*u.pc, frame='icrs')
+    >>> c1.separation_3d(c2)  
+    <Distance 1.52286024 pc>
 
->>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
->>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, frame='fk5')
->>> c1.separation(c2)  # Differing frames handled correctly  
-<Angle 1.40453359 deg>
->>> dist = (c1.separation(c2)*u.degree).value #float value in degree
-```
+    >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
+    >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, frame='fk5')
+    >>> c1.separation(c2)  # Differing frames handled correctly  
+    <Angle 1.40453359 deg>
+    >>> dist = (c1.separation(c2)*u.degree).value #float value in degree
+    ```
 
-- write table to fits file
+    - write table to fits file
 
-```python
-from astropy.table import Table
-t = Table([[1, 2], [4, 5], [7, 8]], names=('a', 'b', 'c'))
-t.write('table1.fits', format='fits')
-```
+    ```python
+    from astropy.table import Table
+    t = Table([[1, 2], [4, 5], [7, 8]], names=('a', 'b', 'c'))
+    t.write('table1.fits', format='fits')
+    ```
+
+- 如何查询某坐标的消光值？
+  > 与astropy无关
+  ```python
+    def query_ebv(ra,dec,size=2,thresh=.25,verbose=False):
+        """
+        Take ra,dec and return the E(B-V) number
+        URL query, see https://irsa.ipac.caltech.edu/applications/DUST
+        """
+        import urllib2
+        import xmltodict
+        url = "https://irsa.ipac.caltech.edu/cgi-bin/DUST/nph-dust?"
+        url += "locstr=%.2f+%.2f+equ+j2000"%(ra,dec)
+        if size<2:size=2
+        if size>37.5:size=37.5
+        url += '&regSize=%.2f'%size # size between 2.0 and 37.5    
+
+        _file = urllib2.urlopen(url)
+        data = _file.read()
+        _file.close()
+
+        _dict = xmltodict.parse(data)
+        _ebv = _dict['results']['result'][0]['statistics']['meanValueSFD']
+
+        ebvalue = float(_ebv.split('(mag)')[0])
+        if ebvalue<thresh:
+            if verbose:
+                print("ra=%.2f dec=%.2f:\tebv=%.2f\tOK"%\
+                    (ra,dec,float(_ebv.split('(mag)')[0])))
+            return ebvalue
+        else:
+            if verbose:
+                print("ra=%.2f dec=%.2f:\tebv=%.2f\tNo"%\
+                    (ra,dec,float(_ebv.split('(mag)')[0])))
+            return
+  ```
