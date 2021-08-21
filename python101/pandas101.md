@@ -6,7 +6,7 @@ from matplotlib.pyplot import MultipleLocator
 import numpy as np
 import pandas as pd
 
-sd=pd.read_csv('./Seeing_Data.csv', low_memory=False, header=None)
+sd=pd.read_csv('./Seeing_Data.csv', low_memory=False, header=None) # low_memory设置是避免'DtypeWarning: Columns (5) have mixed types'这样的警告
 
 print(sd)
 

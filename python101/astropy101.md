@@ -165,7 +165,7 @@
         months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         if day == 31:day = 1
-        days_into_phase = ((ages[(year + 1) % 19] +
+        days_into_phase = ((a2ges[(year + 1) % 19] +
                             ((day + offsets[month-1]) % 30) +
                             (year < 1900)) % 30)
         index = int((days_into_phase + 2) * 16/59.0)  # 月相
@@ -175,7 +175,7 @@
         # 计算当前日期月相百分比
         light = int(2 * days_into_phase * 100/29)
         if light > 100:
-            light = abs(light - 200);
+            light = abs(light - 200)
         date = "%d%s%d" % (day, months[month-1], year)
         return date, status, light
   ```
