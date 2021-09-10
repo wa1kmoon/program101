@@ -13,10 +13,42 @@ print('{{{}}}'.format(id))
 ### 时间戳
 
 ```python
-from datetime import date as dt
-t1='2021-04-04-17:08:34.333'
-t2='2021-04-04-18:08:34.333'
-time=dt.strptime(t1,'%Y-%m-%d-%H:%M:%S.%f')
-deltat=t2-t1
-print(deltat.total_seconds())
+import time as tt
+times=['2021-08-22T09:18:18', '2021-08-22T21:41:04','2021-08-22T22:00:23'] #爆发时间, 第一张开始时间, 最后一张结束时间
+timess=[]
+for time in times:
+    tim=tt.strptime(time,'%Y-%m-%dT%H:%M:%S') # 格式解析
+    timess.append(tt.mktime(tim)) # 转换为时间戳(s为单位)
+
+inter=(np.array(timess)[1:]- np.array(timess)[0]) # 计算距离爆发开始的间隔
+
+# 时间戳转化为格式话时间:
+time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(midtime)) # midtime为时间戳, 先转换成localtime, 再转换成格式化时间
+```
+
+### 使用json库读写json文件
+
+```python
+with open(newfile,'r') as nf:
+    njs=json.load(nf) # 读取json内容为一个列表
+
+with open(objfile,'r') as of:
+    ojs=json.load(of)
+    
+print(len(ojs+njs))
+
+with open(objfile,'w') as of:
+    json.dump(ojs+njs, of, ensure_ascii=False, indent=4) # 将json格式列表写入json文件, indent表示缩进,没有indent就没有格式. ensure_ascii=False是为了使汉字能正常写入
+```
+
+### 删除列表里的指定字符串, 列表本身将被改变
+
+```python
+def delsp(list, str):
+    while True:
+        if str in list:
+            list.remove(str)
+        else:
+            break
+    return list
 ```

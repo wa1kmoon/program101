@@ -21,3 +21,11 @@ ax=plt.gca()
 ax.yaxis.set_major_locator(y_loc)
 ax.xaxis.set_major_locator(x_loc)
 ```
+
+### 交换行
+
+```python
+a = pd.DataFrame(data = [[1,2],[3,4]], index=range(2), columns = ['A', 'B'])
+b, c = a.iloc[0].copy(), a.iloc[1].copy()
+a.iloc[0],a.iloc[1] = c,b
+```
