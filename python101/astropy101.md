@@ -20,7 +20,7 @@
     _dataimg, _hdr = fits.getdata(_img+'.fits', header=True)
     ```
 
-- 如何打开本地fits图像，查看图像层数，并将图像变成一层？
+- 如何打开本地fits图像，查看图像层数，并将图像变成一层？ & 如何创建新的fits图像并写如数据?
 
     ```python
     from astropy.io import fits
@@ -98,6 +98,7 @@
     <Distance 1.52286024 pc>
 
     >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
+    >>> c1 = SkyCoord(ra1,dec1, unit=(u.hourangle, u.deg))## 时分秒,度分秒格式
     >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, frame='fk5')
     >>> c1.separation(c2)  # Differing frames handled correctly  
     <Angle 1.40453359 deg>
@@ -179,3 +180,4 @@
         date = "%d%s%d" % (day, months[month-1], year)
         return date, status, light
   ```
+

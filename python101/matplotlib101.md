@@ -383,7 +383,6 @@ ax4 = fig.add_subplot(gs2[1,0],sharex=ax3)
 gs3 = fig.add_gridspec(nrows=2, ncols=1,top=39/60, bottom=31/60,hspace=0,height_ratios=[1,3])
 ax5 = fig.add_subplot(gs3[0,0])
 ax6 = fig.add_subplot(gs3[1,0],sharex=ax5)
-from matplotlib.pyplot import MultipleLocator
 
 gs4 = fig.add_gridspec(nrows=2, ncols=1,top=29/60, bottom=21/60,hspace=0,height_ratios=[1,3])
 ax7 = fig.add_subplot(gs4[0,0])
@@ -465,3 +464,52 @@ axt6.pcolormesh(wl_uvb,cy_uvb,data_uvb, shading='auto',cmap='binary', norm=color
 ```
 
 ![multi_color_norms](./matplotlib/pics/multi_color_norms.jpg)
+
+### 在图像里再画一个inset小图
+
+> 主要使用`from mpl_toolkits.axes_grid1.inset_locator import inset_axes`
+
+官方示例:https://matplotlib.org/stable/gallery/axes_grid1/inset_locator_demo.html#sphx-glr-gallery-axes-grid1-inset-locator-demo-py
+
+```python
+import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+def inset_plot(width, height,text,fontsize,ax):
+    """
+    plot a inset at the bottom left corner with 0 padding
+    
+    Parameters:
+    ----------
+    width: float
+        the ratio of inset width w.r.t the parent axe's x axis
+    
+    height: float
+        the ratio of inset height w.r.t the parent axe's y axis
+    
+    text: str
+        the text displayed at the center of the inset
+    
+    fontsize: float
+    
+    ax: plt.ax
+        the ax the inset will be added to
+    """
+    width='{}%'.format(width*100)
+    height='{}%'.format(height*100)
+    
+    axins = inset_axes(ax, width=width, height=height, loc=3, borderpad=0)
+    axins.tick_params(labelleft=False, labelbottom=False, length=0)
+    axins.text(0.5,0.5,text,size=fontsize, ha='center',va='center')
+
+
+fig, ax = plt.subplots(figsize=[7,3])
+# axins2 = inset_axes(ax, width="25%", height="40.0%", loc=3,borderpad=0)
+# axins2.tick_params(labelleft=False, labelbottom=False, length=0)
+# axins2.text(0.5,0.5,'test',va='center', ha='center')
+inset_plot(0.25,0.4,'t',10,ax)
+plt.show()
+```
+![inset_loc](./matplotlib/pics/inset_loc.png)
