@@ -105,12 +105,116 @@
     >>> dist = (c1.separation(c2)*u.degree).value #float value in degree
     ```
 
-    - write table to fits file
+- write table to fits file
 
     ```python
     from astropy.table import Table
     t = Table([[1, 2], [4, 5], [7, 8]], names=('a', 'b', 'c'))
     t.write('table1.fits', format='fits')
+    ```
+
+- 读取fits table文件
+
+    ```python
+    >>> from astropy.table import Table
+    >>> psfcat=Table.read('ztf_20180327208819_000841_zg_c06_o_q1_psfcat.fits')
+    >>> psfcat.info()
+
+    <Table length=1989>
+    name    dtype  unit
+    -------- ------- ----
+    sourceid   int32     
+        xpos float32  pix
+        ypos float32  pix
+        ra float64  deg
+        dec float64  deg
+        flux float32   DN
+    sigflux float32   DN
+        mag float32  mag
+    sigmag float32  mag
+        snr float32     
+        chi float32     
+    sharp float32
+
+    # Create a table
+    >>> from astropy.table import QTable
+    >>> import astropy.units as u
+    >>> import numpy as np
+
+    >>> a = np.array([1, 4, 5], dtype=np.int32)
+    >>> b = [2.0, 5.0, 8.5]
+    >>> c = ['x', 'y', 'z']
+    >>> d = [10, 20, 30] * u.m / u.s
+
+    >>> t = QTable([a, b, c, d],
+    ...            names=('a', 'b', 'c', 'd'),
+    ...            meta={'name': 'first table'})
+
+    # Access the data by column or row using familiar numpy structured array syntax:
+    >>> t['a']       # Column 'a'
+    <Column name='a' dtype='int32' length=3>
+    1
+    4
+    5
+
+    >>> t['a'][1]    # Row 1 of column 'a'
+    4
+
+    >>> t[1]         # Row object for table row index=1
+    <Row index=1>
+    a      b     c      d
+                        m / s
+    int32 float64 str1 float64
+    ----- ------- ---- -------
+        4   5.000    y    20.0
+
+
+    >>> t[1]['a']    # Column 'a' of row 1
+    4
+
+    # You can retrieve a subset of a table by rows (using a slice) or by columns (using column names), where the subset is returned as a new table:
+    >>> print(t[0:2])      # Table object with rows 0 and 1
+    a     b     c    d
+                    m / s
+    --- ------- --- -----
+    1   2.000   x  10.0
+    4   5.000   y  20.0
+
+
+    >>> print(t['a', 'c'])  # Table with cols 'a', 'c'
+    a   c
+    --- ---
+    1   x
+    4   y
+    5   z
+
+    # Modifying a Table in place is flexible and works as you would expect:
+    >>> t['a'][:] = [-1, -2, -3]    # Set all column values in place
+    >>> t['a'][2] = 30              # Set row 2 of column 'a'
+    >>> t[1] = (8, 9.0, "W", 4 * u.m / u.s) # Set all row values
+    >>> t[1]['b'] = -9              # Set column 'b' of row 1
+    >>> t[0:2]['b'] = 100.0         # Set column 'b' of rows 0 and 1
+    >>> print(t)
+    a     b     c    d
+                    m / s
+    --- ------- --- -----
+    -1 100.000   x  10.0
+    8 100.000   W   4.0
+    30   8.500   z  30.0
+
+    # Replace, add, remove, and rename columns with the following:
+    >>> t['b'] = ['a', 'new', 'dtype']   # Replace column b (different from in-place)
+    >>> t['e'] = [1, 2, 3]               # Add column d
+    >>> del t['c']                       # Delete column c
+    >>> t.rename_column('a', 'A')        # Rename column a to A
+    >>> t.colnames
+    ['A', 'b', 'd', 'e']
+
+    # Adding a new row of data to the table is as follows. 
+
+    >>> t.add_row([-8, 'string', 10 * u.cm / u.s, 10])
+    >>> len(t)
+    4
     ```
 
 - 如何查询某坐标的消光值？
@@ -180,4 +284,3 @@
         date = "%d%s%d" % (day, months[month-1], year)
         return date, status, light
   ```
-
