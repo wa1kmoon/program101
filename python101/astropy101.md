@@ -284,3 +284,91 @@
         date = "%d%s%d" % (day, months[month-1], year)
         return date, status, light
   ```
+
+- 使用match函数做两表的交叉匹配
+
+```python
+import sys
+import numpy as np
+from astropy.table import Table
+import astropy.units as u
+from astropy.coordinates import SkyCoord
+from astropy.coordinates import match_coordinates_sky as match
+
+reffile=sys.argv[1]
+newfile=sys.argv[2]
+
+tab_ref=Table.read(reffile)
+tab_new=Table.read(newfile)
+
+ref_coo = SkyCoord(ra=tab_ref['X_WORLD'], dec=tab_ref['Y_WORLD'], unit=(u.deg, u.deg))
+new_coo = SkyCoord(ra=tab_new['X_WORLD'], dec=tab_new['Y_WORLD'], unit=(u.deg, u.deg))
+idx,sep2d,dist3d=match(ref_coo, new_coo)
+
+coofile = open('match.coo','w')
+thres=1/60./60.
+for i,sep in enumerate(sep2d):
+    ref_xim=tab_ref['X_IMAGE'][i]
+    ref_yim=tab_ref['Y_IMAGE'][i]
+
+    if sep.value < thres:
+        new_xim=tab_new['X_IMAGE'][idx[i]]
+        new_yim=tab_new['Y_IMAGE'][idx[i]]
+        #print(sep.value, ref_xim, ref_yim, new_xim, new_yim)
+        
+        coofile.write('{:.2f} {:.2f} {:.2f} {:.2f}\n'.format(ref_xim, ref_yim, new_xim, new_yim))
+    else:
+        continue
+coofile.close()
+```
+
+- 画天球图
+```python
+import matplotlib.pyplot as plt
+%matplotlib inline
+import numpy as np
+import healpy as hp
+import astropy.io.fits as fits
+
+def plot_coord(rot_phi,rot_theta):
+    """
+    show specific coordiantes in healpy plots
+    """
+
+    # define rotate scheme
+    r = hp.Rotator(deg=True, rot=[rot_phi,rot_theta])
+
+    _ralist,_declist = [0,30,60,90,120,150,180,210,240,270,300,330],\
+                       [0,30,60,-30,-60]
+
+    for _ra in _ralist:
+        for _dec in _declist:
+
+            # select some special points
+            theta1,phi1 = np.pi/2.-np.radians(_dec),np.radians(_ra)
+
+            # apply rotation
+            theta1,phi1 = r(theta1,phi1)
+  
+            # visualization
+            if _ra == 0:
+                hp.projtext(theta1,phi1, str(_dec), coord='G')
+            elif _dec == 0:
+                hp.projtext(theta1,phi1, str(_ra), coord='G')
+            else:
+                #hp.projtext(theta1,phi1, str(_ra)+','+str(_dec), coord='G')
+                pass
+
+from astropy.io import ascii
+hdu = ascii.read('halo_star.csv')
+ra = hdu['ra']
+dec = hdu['dec']
+
+fig = plt.figure(figsize=(15, 10))
+hp.graticule()
+hp.projplot(np.array(ra)[:], np.array(dec)[:], 'bx',lonlat=True, coord='C')
+plot_coord(0,0)
+#plt.axis('off')
+#plt.legend()
+plt.title('localization in galactic coordinate',fontsize=18)
+```
