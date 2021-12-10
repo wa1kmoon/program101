@@ -1,3 +1,5 @@
+[TOC]
+
 ### 如何设置坐标轴刻度
 
 ```python
@@ -513,3 +515,45 @@ inset_plot(0.25,0.4,'t',10,ax)
 plt.show()
 ```
 ![inset_loc](./matplotlib/pics/inset_loc.png)
+
+### 用np.meshgrid()画网格 
+https://stackoverflow.com/questions/59327021/how-to-plot-a-2d-structured-mesh-in-matplotlib
+
+```python
+x, y = np.meshgrid(np.linspace(corner_en[0], corner_wn[0], int(fov_ra*60.0/5+1)), np.linspace(corner_es[1], corner_en[1], int(fov_dec*60.0/5+1)))
+fig=plt.figure(figsize=(20*(fov_ra/(fov_ra+fov_dec)),20*(fov_dec/(fov_ra+fov_dec))))
+ax1=fig.add_subplot()
+ax1.vlines(x[0], *y[[0,-1],0], color='grey', lw=0.5) # '*'在这里表示解包
+ax1.hlines(y[:,0], *x[0, [0,-1]], color='grey', lw=0.5)
+```
+
+### 设置两轴比例尺相同
+
+https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axis_equal_demo.html
+
+`ax.axis('equal')` or `ax.set_aspect('equal','box')`
+
+```python
+fig=plt.figure(figsize=(20*(fov_ra/(fov_ra+fov_dec)),20*(fov_dec/(fov_ra+fov_dec))))
+ax1=fig.add_subplot()
+
+ax1.vlines(x[0], *y[[0,-1],0], color='grey', lw=0.5)
+ax1.hlines(y[:,0], *x[0, [0,-1]], color='grey', lw=0.5)
+
+ax1.scatter(ar_ra_refcat, ar_dec_refcat, marker='.', s=6, label='empty {}/{}={:.4f}'.format(empties, total, empties/total))
+ax1.hlines(corner_en[1], corner_wn[0], corner_en[0], color='r', ls='--')
+ax1.hlines(corner_es[1], corner_ws[0], corner_es[0], color='r', ls='--')
+ax1.vlines(corner_en[0], corner_es[1], corner_en[1], color='r', ls='--')
+ax1.vlines(corner_wn[0], corner_ws[1], corner_wn[1], color='r', ls='--')
+ax1.text(ra_cen, dec_cen, id, ha='center', va='center', fontsize=18)
+#ax1.set_xlim(ra_cen-1.1*fov_ra,ra_cen+1.1*fov_ra)
+#ax1.set_ylim(dec_cen-1.1*fov_dec,dec_cen+1.1*fov_dec)
+ax1.legend(prop={'size':16})
+
+ax1.set_aspect('equal','box') # set equa aspect ratio, https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axis_equal_demo.html
+ax1.xaxis.set_major_locator(MultipleLocator(0.25))
+ax1.yaxis.set_major_locator(MultipleLocator(0.25))
+
+ax1.invert_xaxis()
+fig.savefig(fig_ldac,bbox_inches='tight',dpi=300)
+```

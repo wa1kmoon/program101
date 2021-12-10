@@ -99,3 +99,17 @@ DP-1-3 connected 1920x1080+1920+0 (normal left inverted right x axis y axis) 509
 ## 显示从文件的第10行到最后一行的内容
 
 `sed -n '10, $p' file.txt`
+
+## 判断变量为空
+
+https://www.jb51.net/article/154835.htm
+
+```sh
+#!/bin/sh
+para1=
+if [ ! $para1 ]; then
+  echo "IS NULL"
+else
+  echo "NOT NULL"
+fi
+```

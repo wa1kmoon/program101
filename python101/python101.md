@@ -71,3 +71,62 @@ pages = convert_from_path(pdf_name, 500)
 for idx,page in enumerate(pages):
     page.save(str(idx+1)+jpg_name, 'JPEG')
 ```
+
+### reading docs
+
+#### 函数定义: 使用'/','*'进行位置参数和关键参数的指定
+
+```python
+def f(pos1, pos2, /, pos_or_kwd, *, kwd1, kwd2):
+      -----------    ----------     ----------
+        |             |                  |
+        |        Positional or keyword   |
+        |                                - Keyword only
+         -- Positional only
+
+```
+
+在这里还可以发现更多细节，特定形参可以被标记为 仅限位置。 如果是 仅限位置 的形参，则其位置是重要的，并且该形参不能作为关键字传入。 仅限位置形参要放在 / (正斜杠) 之前。 这个 / 被用来从逻辑上分隔仅限位置形参和其它形参。 如果函数定义中没有 /，则表示没有仅限位置形参。
+
+在 / 之后的形参可以为 位置或关键字 或 仅限关键字。
+
+要将形参标记为 仅限关键字，即指明该形参必须以关键字参数的形式传入，应在参数列表的第一个 仅限关键字 形参之前放置一个 *。
+
+仅限位置形参的名称可以在 **kwds 中使用而不产生歧义。
+
+#### 解包参数列表
+
+使用'*'操作符解包列表和元素**提供位置参数**:
+```python
+>>> list(range(3, 6))            # normal call with separate arguments
+[3, 4, 5]
+>>> args = [3, 6]
+>>> list(range(*args))            # call with arguments unpacked from a list
+[3, 4, 5]
+```
+
+使用'\*\*'操作符解包字典**提供关键字参数**:
+```python
+>>> def parrot(voltage, state='a stiff', action='voom'):
+...     print("-- This parrot wouldn't", action, end=' ')
+...     print("if you put", voltage, "volts through it.", end=' ')
+...     print("E's", state, "!")
+...
+>>> d = {"voltage": "four million", "state": "bleedin' demised", "action": "VOOM"}
+>>> parrot(**d)
+-- This parrot wouldn't VOOM if you put four million volts through it. E's bleedin' demised !
+```
+
+### 回到行首重新输出
+
+```python
+import sys
+
+def progress(i):
+    progress = i/10000
+    sys.stdout.write("Progress:{} {:.2f}%  \r".format('+'*int(80*progress) + '-'*(80-int(80*progress)), progress*100))
+    #sys.stdout.flush()
+
+for i in range(10001):
+    progress(i)
+```
