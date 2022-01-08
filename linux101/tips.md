@@ -113,3 +113,14 @@ else
   echo "NOT NULL"
 fi
 ```
+
+## 查看哪些端口开放以及某端口服务情况
+
+https://blog.csdn.net/q1054261752/article/details/90736040
+
+```
+sudo aptitude install nmap
+nmap 127.0.0.1
+
+lsof -i:8181
+```

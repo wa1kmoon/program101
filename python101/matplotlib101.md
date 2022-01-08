@@ -448,6 +448,7 @@ axs[1].set_title("shading='flat'")
 
 ```python
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 from matplotlib.colors import BoundaryNorm
 from matplotlib.ticker import MaxNLocator
 
@@ -556,4 +557,119 @@ ax1.yaxis.set_major_locator(MultipleLocator(0.25))
 
 ax1.invert_xaxis()
 fig.savefig(fig_ldac,bbox_inches='tight',dpi=300)
+```
+
+### 设置坐标刻度不可见
+
+```python
+ax.get_xaxis().set_visible(False)
+ax.get_yaxis().set_visible(False)
+```
+
+### 给图像加水印
+https://matplotlib.org/stable/gallery/subplots_axes_and_figures/custom_figure_class.html#sphx-glr-gallery-subplots-axes-and-figures-custom-figure-class-py
+
+```python
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+import numpy as np
+
+
+class WatermarkFigure(Figure):
+    """A figure with a text watermark."""
+
+    def __init__(self, *args, watermark=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if watermark is not None:
+            bbox = dict(boxstyle='square', lw=3, ec='gray',
+                        fc=(0.9, 0.9, .9, .5), alpha=0.5)
+            self.text(0.5, 0.5, watermark,
+                      ha='center', va='center', rotation=30,
+                      fontsize=40, color='gray', alpha=0.5, bbox=bbox)
+
+
+x = np.linspace(-3, 3, 201)
+y = np.tanh(x) + 0.1 * np.cos(5 * x)
+
+plt.figure(FigureClass=WatermarkFigure, watermark='draft')
+plt.plot(x, y)
+```
+
+### 对图像(数组)进行高斯平滑
+
+```python
+from scipy.ndimage import gaussian_filter
+im_conved = gaussian_filter(image, sigma=1)
+```
+
+### 旋转图像
+
+https://matplotlib.org/stable/gallery/images_contours_and_fields/affine_image.html#sphx-glr-gallery-images-contours-and-fields-affine-image-py
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.transforms as mtransforms
+
+def get_image():
+    delta = 0.25
+    x = y = np.arange(-3.0, 3.0, delta)
+    X, Y = np.meshgrid(x, y)
+    Z1 = np.exp(-X**2 - Y**2)
+    Z2 = np.exp(-(X - 1)**2 - (Y - 1)**2)
+    Z = (Z1 - Z2)
+    return Z
+
+# prepare image and figure
+fig,ax = plt.subplots()
+Z = get_image()
+
+# image rotation
+transform = mtransforms.Affine2D().rotate_deg(30)
+
+im = ax.imshow(Z, interpolation='none',
+                origin='lower',
+                extent=[-2, 4, -3, 2], clip_on=True)
+
+trans_data = transform + ax.transData
+im.set_transform(trans_data)
+
+# display intended extent of the image
+x1, x2, y1, y2 = im.get_extent()
+ax.plot([x1, x2, x2, x1, x1], [y1, y1, y2, y2, y1], "y--",
+        transform=trans_data)
+ax.set_xlim(-5, 5)
+ax.set_ylim(-4, 4)
+
+plt.show()
+```
+
+### 在imshow图像上画圆
+https://matplotlib.org/stable/gallery/showcase/anatomy.html#sphx-glr-gallery-showcase-anatomy-py
+
+```python
+import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
+from matplotlib.patheffects import withStroke
+
+royal_blue = "#002082"
+royal_blue = [0, 20/256, 82/256]
+
+def text(x, y, ax, text):
+    ax.text(x, y, text, zorder=100,
+            ha='center', va='top', weight='bold', color=royal_blue,
+            style='italic', fontfamily='monospace',
+            path_effects=[withStroke(linewidth=7, foreground=(1, 1, 1, 1))])
+
+
+def circle(x, y, ax, radius=0.15):
+    c = Circle((x, y), radius, clip_on=False, zorder=10, linewidth=2.5,
+               edgecolor='red', facecolor='none')
+               #path_effects=[withStroke(linewidth=7, foreground=(1, 1, 1, 1))])
+    ax.add_artist(c)
+
+fig,ax1=plt.subplots()
+ax1.imshow(data)
+circle(46,-96,ax1,radius=6) # 画圆
 ```

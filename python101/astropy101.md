@@ -399,3 +399,52 @@ hdr.insert(newkeys[0],('HISTORY','--Start of SCAMP WCS solution--')) # jilu
 fits.writeto(fitsfile[:-5]+'.scamp.fits',header=hdr, data=hdu[0].data)
 hdu.close()
 ```
+
+### 根据图像wcs信息计算像素分辨率
+https://docs.astropy.org/en/stable/api/astropy.wcs.WCS.html?highlight=wcs#astropy.wcs.WCS
+
+```python
+from astropy.io import fits
+from astropy.wcs import WCS
+
+hdu = fits.open('sum.fits')[0]
+wcs = WCS(hdu.header)
+wcs.proj_plane_pixel_scales() # 返回两个方向的像素尺度, 以度为单位
+
+wcs.proj_plane_pixel_scales()[0].value * 3600 # 获取数值再变成角秒
+
+# 粗略计算:
+# np.sqrt(CD1_1 ** 2 + CD1_2 ** 2) * 3600
+```
+
+### 根据fits表格生成ds9 .reg文件
+
+```python
+from astropy.table import Table as tb
+
+catfile = 'detect.cat'
+cat = tb.read(catfile)
+
+reg=open('.'.join(catfile.split('.')[:-1])+'.reg','w')
+reg.write('# Region file format: DS9 version 4.1\n')
+reg.write('global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\n')
+reg.write('FK5\n')
+
+for src in cat:
+    ra = src['X_WORLD']
+    dec = src['Y_WORLD']
+    mag_psf = src['MAG_PSF']
+    mage_psf = src['MAGERR_PSF']
+    reg.write('circle({},{},3.000") # text={{{},{}}}\n'.format(ra,dec,mag_psf, mage_psf))
+
+reg.close()
+```
+
+### 赤经赤纬 银经银纬 转换
+
+```python
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+c_icrs = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree, frame='icrs')
+c_icrs.galactic 
+```

@@ -72,9 +72,23 @@ for idx,page in enumerate(pages):
     page.save(str(idx+1)+jpg_name, 'JPEG')
 ```
 
+### 回到行首重新输出
+
+```python
+import sys
+
+def progress(i):
+    progress = i/10000
+    sys.stdout.write("Progress:{} {:.2f}%  \r".format('+'*int(80*progress) + '-'*(80-int(80*progress)), progress*100))
+    #sys.stdout.flush()
+
+for i in range(10001):
+    progress(i)
+```
+
 ### reading docs
 
-#### 函数定义: 使用'/','*'进行位置参数和关键参数的指定
+#### 函数定义: 使用'/','*'进行位置参数和关键字参数的指定
 
 ```python
 def f(pos1, pos2, /, pos_or_kwd, *, kwd1, kwd2):
@@ -115,18 +129,4 @@ def f(pos1, pos2, /, pos_or_kwd, *, kwd1, kwd2):
 >>> d = {"voltage": "four million", "state": "bleedin' demised", "action": "VOOM"}
 >>> parrot(**d)
 -- This parrot wouldn't VOOM if you put four million volts through it. E's bleedin' demised !
-```
-
-### 回到行首重新输出
-
-```python
-import sys
-
-def progress(i):
-    progress = i/10000
-    sys.stdout.write("Progress:{} {:.2f}%  \r".format('+'*int(80*progress) + '-'*(80-int(80*progress)), progress*100))
-    #sys.stdout.flush()
-
-for i in range(10001):
-    progress(i)
 ```
