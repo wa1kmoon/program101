@@ -29,3 +29,11 @@ a = pd.DataFrame(data = [[1,2],[3,4]], index=range(2), columns = ['A', 'B'])
 b, c = a.iloc[0].copy(), a.iloc[1].copy()
 a.iloc[0],a.iloc[1] = c,b
 ```
+
+### 取某几列
+
+```python
+df.iloc[idx][['a','b']]
+df.loc[idx][['a','b']]
+df.loc[idx,['a','b']]
+```

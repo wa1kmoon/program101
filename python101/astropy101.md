@@ -2,7 +2,7 @@
 
 [TOC]
 
-### 使用astropy更改关键字的值
+## 使用astropy更改关键字的值
 
 ```py
 from astropy.io import fits
@@ -15,14 +15,14 @@ with fits.open(output,mode='update') as comp:
 ```
 
 
-### 如何打开本地fits图像：
+## 如何打开本地fits图像：
 
 ```python
 from astropy.io import fits
 _dataimg, _hdr = fits.getdata(_img+'.fits', header=True)
 ```
 
-### 如何打开本地fits图像，查看图像层数，并将图像变成一层？ & 如何创建新的fits图像并写如数据?
+## 如何打开本地fits图像，查看图像层数，并将图像变成一层？ & 如何创建新的fits图像并写如数据?
 
 ```python
 from astropy.io import fits
@@ -33,7 +33,7 @@ header=fitsfile[0].header
 fits.writeto('1.new.fits',data,header=header)
 ```
 
-### 如何创建一个新的fits头文件并往其中添加内容？
+## 如何创建一个新的fits头文件并往其中添加内容？
 
 ```python
 hdulist=fits.open(fitsfile)
@@ -44,7 +44,7 @@ for key in hdulist[0].header:
         wcshdr[key]=(hdulist[0].header[key],hdulist[0].header.comments[key])
 ```
 
-### 如何用另一个np.array替换原图象中的数据？
+## 如何用另一个np.array替换原图象中的数据？
 
 ```python
 from astropy.io import fits
@@ -58,7 +58,7 @@ with fits.open('1.1.fits', mode='update') as new:
     new.flush()
 ```
 
-### how to draw 3D figure from fits image?
+## how to draw 3D figure from fits image?
 
 ```python
 from astropy.io import fits
@@ -88,7 +88,7 @@ plt.savefig('3d.png',dpi=100)
 plt.show()
 ```
 
-### 求两点距离
+## 求两点距离
 
 ```python
 >>> from astropy import units as u
@@ -107,7 +107,7 @@ plt.show()
 >>> dist = (c1.separation(c2)*u.degree).value #float value in degree
 ```
 
-### write table to fits file
+## write table to fits file
 
 ```python
 from astropy.table import Table
@@ -115,7 +115,7 @@ t = Table([[1, 2], [4, 5], [7, 8]], names=('a', 'b', 'c'))
 t.write('table1.fits', format='fits')
 ```
 
-### 读取fits table文件
+## 读取fits table文件
 
 ```python
 >>> from astropy.table import Table
@@ -219,7 +219,7 @@ a     b     c    d
 4
 ```
 
-### 如何查询某坐标的消光值？
+## 如何查询某坐标的消光值？
 > 与astropy无关,来源为杨圣师兄的pstools程序。
 ```python
     def query_ebv(ra,dec,size=2,thresh=.25,verbose=False):
@@ -255,8 +255,9 @@ a     b     c    d
             return
   ```
 
-### 如何计算大致月相？
+## 如何计算大致月相？
 > 与astropy无关,来源为杨圣师兄的pstools程序pstdef模块。
+
 ```python
 def moon_phase(month, day, year):
     ages = [18, 0, 11, 22, 3, 14, 25, 6, 17, 28, 9, 20, 1, 12, 23, 4, 15, 26, 7]
@@ -287,7 +288,7 @@ def moon_phase(month, day, year):
     return date, status, light
 ```
 
-### 使用match函数做两表的交叉匹配
+## 使用match函数做两表的交叉匹配
 
 ```python
 import sys
@@ -306,6 +307,7 @@ tab_new=Table.read(newfile)
 ref_coo = SkyCoord(ra=tab_ref['X_WORLD'], dec=tab_ref['Y_WORLD'], unit=(u.deg, u.deg))
 new_coo = SkyCoord(ra=tab_new['X_WORLD'], dec=tab_new['Y_WORLD'], unit=(u.deg, u.deg))
 idx,sep2d,dist3d=match(ref_coo, new_coo)
+# 返回的idx序列的长度等于ref_coo的长度, 第i个idx的值为new_coo中离第i个ref_coo坐标最近的那个源在new_coo中的index.
 
 coofile = open('match.coo','w')
 thres=1/60./60.
@@ -324,7 +326,8 @@ for i,sep in enumerate(sep2d):
 coofile.close()
 ```
 
-### 画天球图
+## 画天球图
+
 ```python
 import matplotlib.pyplot as plt
 %matplotlib inline
@@ -375,7 +378,7 @@ plot_coord(0,0)
 plt.title('localization in galactic coordinate',fontsize=18)
 ```
 
-### 更新/插入图像头中的关键字
+## 更新/插入图像头中的关键字
 
 ```python
 for key in hdrkeys:
@@ -400,7 +403,26 @@ fits.writeto(fitsfile[:-5]+'.scamp.fits',header=hdr, data=hdu[0].data)
 hdu.close()
 ```
 
-### 根据图像wcs信息计算像素分辨率
+## 读取文本文件生成fits头对象
+https://docs.astropy.org/en/stable/io/fits/api/headers.html?highlight=read%20header%20from%20file#astropy.io.fits.Header.fromtextfile
+
+```python
+import astropy.io.fits as fits
+
+textfile='wcs.head'
+head = fits.Header.fromtextfile(textfile)
+```
+
+## 把 astropy header 对象写入文本文件
+https://docs.astropy.org/en/stable/io/fits/api/headers.html?highlight=read%20header%20from%20file#astropy.io.fits.Header.tostring
+
+```python
+import astropy.io.fits as fits
+with open('test.head','w') as f:
+    f.write(head.tostring(sep='\n'))
+```
+
+## 根据图像wcs信息计算像素分辨率
 https://docs.astropy.org/en/stable/api/astropy.wcs.WCS.html?highlight=wcs#astropy.wcs.WCS
 
 ```python
@@ -417,7 +439,7 @@ wcs.proj_plane_pixel_scales()[0].value * 3600 # 获取数值再变成角秒
 # np.sqrt(CD1_1 ** 2 + CD1_2 ** 2) * 3600
 ```
 
-### 根据fits表格生成ds9 .reg文件
+## 根据fits表格生成ds9 .reg文件
 
 ```python
 from astropy.table import Table as tb
@@ -440,11 +462,40 @@ for src in cat:
 reg.close()
 ```
 
-### 赤经赤纬 银经银纬 转换
+## 赤经赤纬 银经银纬 转换
 
 ```python
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 c_icrs = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree, frame='icrs')
 c_icrs.galactic 
+```
+
+## 计算 chance coincidence 概率
+
+https://iopscience.iop.org/article/10.1086/338893
+
+```python
+import numpy as np
+
+def pcc(m, r):
+    sigma = 10**(0.334*(m-22.963)+4.320) / (3600**2 * 0.334 * np.log(10)) # Bloom 2002
+    #sigma = 10**(0.33*(m-24)-2.44) / (0.33 * np.log(10)) # Berger 2010
+    p = 1 - np.e**(-np.pi * r**2 * sigma)
+    
+    return p
+```
+
+如何计算r可以参考上面的参考文献
+
+## 给定宇宙学参数和红移计算距离
+
+```python
+from astropy.cosmology import FlatLambdaCDM
+
+cosmo = FlatLambdaCDM(H0=71, Om0=0.27)
+
+cosmo.comoving_distance(0.225).value # 共动距离(Mpc)
+cosmo.luminosity_distance(0.225).value # 光度距离
+cosmo.angular_diameter_distance(0.225).value # 角直径距离
 ```

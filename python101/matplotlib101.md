@@ -559,6 +559,14 @@ ax1.invert_xaxis()
 fig.savefig(fig_ldac,bbox_inches='tight',dpi=300)
 ```
 
+### 让图所有坐标轴都有刻度
+
+```python
+plt.tick_params(top='on', right='on', which='both') # 显示上侧和右侧的刻度
+plt.rcParams['xtick.direction'] = 'in' #将x轴的刻度线方向设置向内
+plt.rcParams['ytick.direction'] = 'in' #将y轴的刻度方向设置向内
+```
+
 ### 设置坐标刻度不可见
 
 ```python
@@ -672,4 +680,155 @@ def circle(x, y, ax, radius=0.15):
 fig,ax1=plt.subplots()
 ax1.imshow(data)
 circle(46,-96,ax1,radius=6) # 画圆
+```
+
+### 放大图像中某一区域
+
+```python
+fig = plt.figure(figsize=(7,5))
+ax = fig.add_subplot()
+ax.plot(X, Y)
+
+
+axin = ax.inset_axes([0.5,0.5,0.1,0.3]) # 以0.5倍长和0.5倍宽做为原点位置, 分别向右和上延伸0.1倍长和0.3倍宽.
+axin.plot(X, Y)
+axin.set_xlim(x1,x2)
+axin.set_ylim(y1,y2)
+ax.indicate_inset_zoom(axin, edgecolor="black")
+```
+
+### 误差椭圆
+
+https://matplotlib.org/3.5.0/gallery/statistics/confidence_ellipse.html
+
+```python
+def confidence_ellipse(x, y, ax, n_std=3.0, facecolor='none', **kwargs):
+    """
+    Create a plot of the covariance confidence ellipse of *x* and *y*.
+
+    Parameters
+    ----------
+    x, y : array-like, shape (n, )
+        Input data.
+
+    ax : matplotlib.axes.Axes
+        The axes object to draw the ellipse into.
+
+    n_std : float
+        The number of standard deviations to determine the ellipse's radiuses.
+
+    **kwargs
+        Forwarded to `~matplotlib.patches.Ellipse`
+
+    Returns
+    -------
+    matplotlib.patches.Ellipse
+    """
+    if x.size != y.size:
+        raise ValueError("x and y must be the same size")
+
+    cov = np.cov(x, y)
+    pearson = cov[0, 1]/np.sqrt(cov[0, 0] * cov[1, 1])
+    # Using a special case to obtain the eigenvalues of this
+    # two-dimensionl dataset.
+    ell_radius_x = np.sqrt(1 + pearson)
+    ell_radius_y = np.sqrt(1 - pearson)
+    ellipse = Ellipse((0, 0), width=ell_radius_x * 2, height=ell_radius_y * 2,
+                      facecolor=facecolor, **kwargs)
+
+    # Calculating the stdandard deviation of x from
+    # the squareroot of the variance and multiplying
+    # with the given number of standard deviations.
+    scale_x = np.sqrt(cov[0, 0]) * n_std
+    mean_x = np.mean(x)
+
+    # calculating the stdandard deviation of y ...
+    scale_y = np.sqrt(cov[1, 1]) * n_std
+    mean_y = np.mean(y)
+
+    transf = transforms.Affine2D() \
+        .rotate_deg(45) \
+        .scale(scale_x, scale_y) \
+        .translate(mean_x, mean_y)
+
+    ellipse.set_transform(transf + ax.transData)
+    return ax.add_patch(ellipse)
+```
+
+### 显示log刻度副刻度
+
+```python
+# def loc_ticks(x1,x2):
+#     a1=np.arange(x1, 10*x1, step=x1)
+#     b1=np.arange(0,np.log10(x2/x1),step=1)
+#     c=[]
+#     for i in b1:
+#         c1=10**i*a1
+#         for j in c1:
+#             c.append(j)
+#     c.append(x2)
+#     return c
+
+def loc_ticks(x1,x2):
+    mag_start = int(np.floor((np.log10(x1))))
+    mag_end = int(np.floor((np.log10(x2))))
+    locs=[]
+    for x in range(mag_start, mag_end+1):
+        for i in range(1,10):
+            if i*10**x < x1: continue
+            if i*10**x > x2: break
+            #print(i,x)
+            locs.append(float(i*10**x))
+    return np.array(locs)
+
+def loc_ticks(x1,x2):
+    mag_start = np.floor((np.log10(x1)))
+    mag_end = np.floor((np.log10(x2)))
+    count_start = np.ceil(x1/10**mag_start)
+    count_end = np.floor(x2/10**mag_end)
+    locs=[]
+    for x in range(int(mag_start*10+count_start),int(mag_end*10+count_end)):
+        if np.mod(x,10) != 0:
+            locs.append(float(str(x)[-1])*10**float(str(x)[:-1]))            
+    return np.array(locs)
+
+ax.set_xticks(loc_ticks(x1,x2),minor=True)
+```
+
+### 调整色棒刻度和标题大小
+
+```python
+cs = ax.scatter(ar_t90, ar_Ep, s=35, c=ar_pshort,alpha=0.7, vmin=0, vmax=100, cmap='seismic')
+cbar=plt.colorbar(cs,pad=0.04,fraction=1)
+cbar.ax.tick_params(labelsize=10)
+cbar.set_label(label=r'$P_{SGRB}(\%)$',fontsize=15)
+```
+
+### 调整legend里面的marker大小
+
+https://stackoverflow.com/questions/24706125/setting-a-fixed-size-for-points-in-legend
+
+```python
+lgnd = plt.legend(loc="lower left", scatterpoints=1, fontsize=10)
+lgnd.legendHandles[0]._sizes = [30]
+lgnd.legendHandles[1]._sizes = [30]
+```
+
+### 调用zscale画图
+
+```python
+interval = ZScaleInterval()
+stretch = LinearStretch(slope=0.5,intercept=0.5) + SinhStretch() + LinearStretch(slope=2, intercept=-1)
+
+fits_image_filename = '0614.fits'
+hdul = fits.open(fits_image_filename)
+wcs = WCS(HDUL[0].header)
+img = -hdul[0].data
+zimg = interval(img)
+
+ax = plt.subplot(project=wcs)
+norm = ImageNormalize(stretch=stretch)
+ax.imshow(zimg, norm=norm, cmap='gray')
+ax.set_xlabel('Right Ascension')
+ax.set_ylabel('Declination')
 ```
