@@ -261,7 +261,7 @@ https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.ht
 
 ```python
 fig = plt.figure()
-gs = fig.add_gridspec(3, hspace=0)
+gs = fig.add_gridspec(3, hspace=0) # hspace指的是上下图像间隔, wspace为左右图像间隔
 axs = gs.subplots(sharex=True, sharey=True)
 fig.suptitle('Sharing both axes')
 axs[0].plot(x, y ** 2)
@@ -823,7 +823,7 @@ stretch = LinearStretch(slope=0.5,intercept=0.5) + SinhStretch() + LinearStretch
 fits_image_filename = '0614.fits'
 hdul = fits.open(fits_image_filename)
 wcs = WCS(HDUL[0].header)
-img = -hdul[0].data
+img = hdul[0].data
 zimg = interval(img)
 
 ax = plt.subplot(project=wcs)
@@ -831,4 +831,16 @@ norm = ImageNormalize(stretch=stretch)
 ax.imshow(zimg, norm=norm, cmap='gray')
 ax.set_xlabel('Right Ascension')
 ax.set_ylabel('Declination')
+```
+
+### 生成pdf
+
+```python
+from matplotlib.backends.backend_pdf import PdfPages
+
+pp = PdfPages('phot_figures.pdf')
+for fig in [plt.figure(fig_sat), plt.figure(fig_fwhm), plt.figure(fig_calibrators), plt.figure(fig_zpfit)]:
+# for fig in [plt.figure(n) for n in plt.get_fignums()]:
+    fig.savefig(pp, format='pdf')
+pp.close()
 ```

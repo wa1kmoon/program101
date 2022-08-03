@@ -124,3 +124,12 @@ nmap 127.0.0.1
 
 lsof -i:8181
 ```
+
+# 安全强制重启
+
+alt+prtsc(sysrq)+ R,E,I,S,U,B
+
+最后一个字母换成O为关机
+
+https://blog.kember.net/posts/2008-04-reisub-the-gentle-linux-restart/
+https://en.wikipedia.org/wiki/Magic_SysRq_key

@@ -86,6 +86,41 @@ for i in range(10001):
     progress(i)
 ```
 
+### 计算众数
+
+```python
+def mode(data, binsize=0.01):
+    """
+    binsize(float): precision of the calculated mode value.
+    """
+    nbin = int((data.max()-data.min())/binsize)
+    hist,bins = np.histogram(data, bins=nbin)
+    cbin = (bins[1:]+bins[:-1])/2
+    mode=cbin[np.where(hist==hist.max())[0]][0]
+    return mode
+```
+
+### 在jupyter中重新加载模块
+
+https://blog.csdn.net/ybdesire/article/details/86709727
+
+```python
+# python 2.x
+import module
+reload(module)
+
+# python 3.2 3.3
+import mudule
+import importlib
+importlib.reload(module)
+
+# pyhon 3.4+
+import module
+import imp
+imp.reload(module)
+
+```
+
 ### reading docs
 
 #### 函数定义: 使用'/','*'进行位置参数和关键字参数的指定

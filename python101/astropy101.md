@@ -273,7 +273,7 @@ def moon_phase(month, day, year):
     months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     if day == 31:day = 1
-    days_into_phase = ((a2ges[(year + 1) % 19] +
+    days_into_phase = ((ages[(year + 1) % 19] +
                         ((day + offsets[month-1]) % 30) +
                         (year < 1900)) % 30)
     index = int((days_into_phase + 2) * 16/59.0)  # 月相
@@ -324,6 +324,53 @@ for i,sep in enumerate(sep2d):
     else:
         continue
 coofile.close()
+```
+
+## 自定函数做pixel坐标较差匹配
+
+```python
+def imatch(positions, catalog)
+    from scipy.spatial import distance
+    ls_idx = []
+    ls_catcoos = [(row[xkey], row[ykey]) for row in catalog]
+    ls_sep = []
+
+    ar_dist = distance.cdist(positions, ls_catcoos, metric='euclidean')
+    thres = 0.5*fwhm
+    for idx, pos in enumerate(positions):
+        match_idx = np.argmin(ar_dist[idx])
+        match_sep = ar_dist[idx][match_idx]
+        if match_sep < thres:
+            ls_idx.append(match_idx)
+            ls_sep.append(match_sep)
+        else:
+            print('no source match image coordinate ({:.2f}, {:.2f}) in differnce image!'.
+                  format(pos[0], pos[1]))
+
+    return ls_idx, ls_sep
+
+def imatch(coo1, coo2):
+    """cross match two set of coordinates (in pixel)
+    Parameters:
+    ----------
+    coo1(np.ndarray): np.array([[x1,y1],[x2,y1],...])
+    coo2(np.ndarray): idem
+
+    Returns:
+    ----------
+    idx(np.ndarray): index of the cloest coordinate(in coo2) with regards to each coordinate of coo1.
+    sep: corresponding offset(in pixel)
+    """
+    idx = []
+    sep = []
+    for i, coo in enumerate(coo1):
+        dist2 = (coo2[:,0] - coo[0])**2 + (coo2[:,1] - coo[1])**2
+        d2_min = np.min(dist2)
+        idx_min = np.where(dist2 == d2_min)[0][0]
+        idx.append(idx_min)
+        sep.append(np.sqrt(d2_min))
+
+    return np.array(idx), np.array(sep)
 ```
 
 ## 画天球图
@@ -462,6 +509,22 @@ for src in cat:
 reg.close()
 ```
 
+## 比较XWIN_IMAGE和X_IMAGE
+
+```python
+col_dist2 = (imgcat['XWIN_IMAGE'] - imgcat['X_IMAGE'])**2 + (imgcat['YWIN_IMAGE'] - imgcat['Y_IMAGE'])**2
+fwhm_image =  np.nanmedian(imgcat['FWHM_IMAGE'])
+
+ls_xcor, ls_ycor = [], []
+for idx,row in enumerate(imgcat):
+    xcor, ycor = np.where(col_dist2[idx] > 0.25*fwhm_image**2, (row['X_IMAGE'],row['Y_IMAGE']), (row['XWIN_IMAGE'],row['YWIN_IMAGE']))
+    ls_xcor.append(xcor)
+    ls_ycor.append(ycor)
+
+imgcat.add_column(col=ls_xcor, name='XCOR_IMAGE')
+imgcat.add_column(col=ls_ycor, name='YCOR_IMAGE')
+```
+
 ## 赤经赤纬 银经银纬 转换
 
 ```python
@@ -498,4 +561,211 @@ cosmo = FlatLambdaCDM(H0=71, Om0=0.27)
 cosmo.comoving_distance(0.225).value # 共动距离(Mpc)
 cosmo.luminosity_distance(0.225).value # 光度距离
 cosmo.angular_diameter_distance(0.225).value # 角直径距离
+```
+
+## 计算消光
+
+```python
+import sfdmap
+
+m = sfdmap.SFDMap('/home/liuxing/Astround/data/sfddata-master/')
+
+m.ebv(178.2,25.6) * 3.1 # E(B-V) * Rv = Av
+
+import extinction
+
+wave = np.array([5400.])
+extinction.ccm89(wave,1.0,3.1) # 假设Av=1, Rv=3.1情况
+
+```
+
+## line fitting
+
+https://docs.astropy.org/en/stable/modeling/example-fitting-line.html
+
+## 度和时(度)分秒格式相互转换??
+
+## 根据wcs获取图像中心坐标和视场大小
+
+```python
+import astropy.wcs as wcs
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+
+imgname = sys.argv[1]
+
+hdulist = fits.open(imgname)
+imgwcs = wcs.WCS(hdulist[0].header, hdulist)
+decnaxis, ranaxis = hdulist[0].data.shape
+hdulist.close()
+
+ra,dec=imgwcs.wcs_pix2world([int(decnaxis/2)],[int(ranaxis/2)],1)
+
+c = SkyCoord(ra, dec, unit=(u.deg, u.deg))
+
+rahms = '%02.f:%02.f:%02.f' % (c.ra.hms)
+decdms= '%02.f:%02.f:%02.f' % (c.dec.dms[0],abs(c.dec.dms[1]),abs(c.dec.dms[2]))
+if c.dec.dms[0] > 0:
+    decdms = '+'+decdms
+else:
+    decdms = '-'+decdms[1:]
+
+# 视场
+## 通过四个角的坐标的水平垂直距离计算图像尺寸
+coo_ul = SkyCoord(*imgwcs.wcs_pix2world([int(nyaxis)],[int(0)],1), unit=(u.deg, u.deg))[0]
+coo_ur = SkyCoord(*imgwcs.wcs_pix2world([int(nyaxis)],[int(nxaxis)],1), unit=(u.deg, u.deg))[0]
+coo_ll = SkyCoord(*imgwcs.wcs_pix2world([int(0)],[int(0)],1), unit=(u.deg, u.deg))[0]
+coo_lr = SkyCoord(*imgwcs.wcs_pix2world([int(0)],[int(nxaxis)],1), unit=(u.deg, u.deg))[0]
+
+xsize = np.mean([coo_ul.separation(coo_ur).value, coo_ll.separation(coo_lr).value]) 
+ysize = np.mean([coo_ur.separation(coo_lr).value, coo_ul.separation(coo_ll).value]) 
+ysize, xsize
+
+## 通过CD矩阵计算像素大小, 进而计算尺寸
+xsize = np.sqrt(np.sum(imgwcs.pixel_scale_matrix[:,0]**2)) * nxaxis
+ysize = np.sqrt(np.sum(imgwcs.pixel_scale_matrix[:,1]**2)) * nyaxis
+ysize, xsize
+```
+
+## run_sex
+
+```python
+def run_sex(imgfilename, addparams=None, config=None, fwhm=None, sexpath='/usr/bin/sex', sexconfpath='/usr/share/sextractor/', loglevel='WARNING', **kwargs):
+    '''Run sextractor via sewpy and do some modifications
+    
+    Parameters:
+    ----------
+    imgfilename(str): positional
+        (path to) image filename
+
+    addparams(list): optional
+        sextractor's parameters to be measured, if not provided,  a default one would be used.
+
+    config(dict): optional
+        sextractor's configuration, if not provided,  a default one would be used.
+
+    fwhm(float): optional
+        fwhm in pixels, if not provided, I will estimate one. Default: None.
+
+    sexpath(str): optional
+        path to sex. Default: '/usr/bin/sex'.
+
+    sexconfpath(str): optional
+        path to the directory containing default sextractor configuration files(.conv files). Default: '/usr/share/sextractor'.
+
+    kwargs:
+        keyword parameters passed to config.
+
+    Returns:
+    ----------
+    tab_sex(astropy.table)
+    '''
+
+    import os, sys
+    import numpy as np
+    import sewpy
+    from astropy.stats import sigma_clipped_stats
+
+
+    # check
+    if not os.path.exists(sexpath):
+        raise Exception('sexpath {} not found!'.format(sexpath))
+    
+    if not  os.path.exists(sexconfpath):
+        raise Exception('sex configpath {} not found!'.format(sexconfpath))
+    
+    # prepare params and config
+    params = ["NUMBER","X_IMAGE","Y_IMAGE","XWIN_IMAGE", "YWIN_IMAGE", 
+              "ALPHA_J2000","DELTA_J2000","MAG_APER","MAGERR_APER","MAG_AUTO","MAGERR_AUTO",
+              "FLUX_MAX","FLUX_RADIUS","FWHM_IMAGE","FWHM_WORLD","ELLIPTICITY"]
+
+    if addparams is not None:
+        params = list(set(params+addparams))
+        # print(len(params),params)
+
+    _config = {'FILTER':'Y', 'FILTER_NAME':sexconfpath+'default.conv','PHOT_APERTURES':10, 'HEADER_SUFFIX':'none'}
+    
+    if 'dthres' in kwargs:
+        kwargs['DETECT_THRESH'] = kwargs.pop('dthres')
+    if 'athres' in kwargs:
+        kwargs['ANALYSIS_THRESH'] = kwargs.pop('athres')
+
+    
+    if fwhm is not None:
+        ## choose a proper filter
+        fwlim = np.array([1.5, 2.25, 2.75, 3.5, 4.5, 5.5])
+        gconv = ['2.0_3x3', '2.5_5x5', '3.0_7x7','4.0_7x7','5.0_9x9']
+
+        if fwhm>fwlim[-1]:
+            convfilename = sexconfpath+'gauss_'+gconv[-1]+'.conv'
+            if not os.path.exists(convfilename):
+                print('WARNING: filter file {} not found!!! use default.'.format(convfilename))
+            else:
+                _config['FILTER_NAME'] = convfilename
+        elif fwhm < fwlim[0]:
+            pass
+        else:
+            i = np.sum((fwlim - fwhm)<0)
+            convfilename = sexconfpath+'gauss_'+gconv[i-1]+'.conv'
+            if not os.path.exists(convfilename):
+                print('WARNING: filter file {} not found!!! use default.'.format(convfilename))
+            else:
+                _config['FILTER_NAME'] = convfilename
+
+    if config is None:
+        config = {**_config, **kwargs}
+    else:
+        config = {**_config, **config, **kwargs}
+    
+    # print(config)
+    
+    sew = sewpy.SEW(params = params, config = config, sexpath = sexpath, loglevel=loglevel)
+    sewout = sew(imgfilename)
+
+    # modify x y
+    tab_sex = sewout['table']
+    if fwhm is None:
+        _, fwhm_image, _ = sigma_clipped_stats(tab_sex[(tab_sex['MAGERR_AUTO']<1.0857/10)]['FWHM_IMAGE'],
+                                            cenfunc = np.nanmedian,
+                                            stdfunc = np.nanstd,
+                                            sigma = 3,
+                                            maxiters = 0)
+    else:
+        fwhm_image = fwhm
+    
+    tab_sex.add_column(col=tab_sex['XWIN_IMAGE'], name='XCOR_IMAGE')
+    tab_sex.add_column(col=tab_sex['YWIN_IMAGE'], name='YCOR_IMAGE')
+
+    delta2 = (tab_sex['XWIN_IMAGE'] - tab_sex['X_IMAGE'])**2 + (tab_sex['YWIN_IMAGE'] - tab_sex['Y_IMAGE'])**2
+
+    idx_winerr = np.where(delta2 > 0.25*fwhm_image**2)[0]
+
+    tab_sex['XCOR_IMAGE'][idx_winerr] = tab_sex['X_IMAGE'][idx_winerr]
+    tab_sex['YCOR_IMAGE'][idx_winerr] = tab_sex['Y_IMAGE'][idx_winerr]
+
+
+    return tab_sex
+```
+
+## fill masked values in astropy.table
+
+https://docs.astropy.org/en/stable/table/masking.html#masking-and-filling
+
+```python
+from astropy.table import Table
+
+# mask
+t = Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True)
+t['a'].mask = [False, True]  # Modify column mask (boolean array)
+t['b'].mask = [True, False]  # Modify column mask (boolean array)
+print(t)
+
+# fill
+t['a'].fill_value = -99
+t['b'].fill_value = 33
+
+print(t.filled())
+print(t['a'].filled())
+print(t['a'].filled(999))
+print(t.filled(1000))
 ```
